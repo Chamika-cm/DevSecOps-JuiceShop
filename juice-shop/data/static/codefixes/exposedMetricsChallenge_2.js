@@ -1,0 +1,40 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.start = start;
+exports.close = close;
+/* Serve metrics */
+const Metrics = metrics.observeMetrics();
+app.get('/metrics', utils.asyncHandler(metrics.serveMetrics()));
+errorhandler.title = `${config.get('application.name')} (Express ${utils.version('express')})`;
+async function start(readyCallback) {
+    const datacreatorEnd = startupGauge.startTimer({ task: 'datacreator' });
+    await sequelize.sync({ force: true });
+    await preconditionsReady;
+    await datacreator();
+    datacreatorEnd();
+    const port = process.env.PORT ?? config.get('server.port');
+    process.env.BASE_PATH = process.env.BASE_PATH ?? config.get('server.basePath');
+    server.listen(port, () => {
+        logger.info(colors.cyan(`Server listening on port ${colors.bold(`${port}`)}`));
+        startupGauge.set({ task: 'ready' }, (Date.now() - startTime) / 1000);
+        if (process.env.BASE_PATH !== '') {
+            logger.info(colors.cyan(`Server using proxy base path ${colors.bold(`${process.env.BASE_PATH}`)} for redirects`));
+        }
+        registerWebsocketEvents(server);
+        if (readyCallback) {
+            readyCallback();
+        }
+        if (process.env.EXIT_ON_READY === 'true') {
+            // used to benchmark startup time
+            process.exit(0);
+        }
+    });
+}
+function close(exitCode) {
+    if (server) {
+        server.close();
+    }
+    if (exitCode !== undefined) {
+        process.exit(exitCode);
+    }
+}

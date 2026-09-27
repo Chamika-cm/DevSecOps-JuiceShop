@@ -2,6 +2,7 @@
  * Copyright (c) 2014-2026 Bjoern Kimminich & the OWASP Juice Shop contributors.
  * SPDX-License-Identifier: MIT
  */
+import rateLimit from 'express-rate-limit'
 import { type Request, type Response, type NextFunction } from 'express'
 import config from 'config'
 
@@ -13,6 +14,16 @@ import { UserModel } from '../models/user'
 import * as models from '../models/index'
 import { type User } from '../data/types'
 import * as utils from '../lib/utils'
+
+// Rate limiter - 429 
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: 'Too many login attempts from this IP, please try again after 15 minutes',
+  statusCode: 429,
+  standardHeaders: true,
+  legacyHeaders: false,
+})
 
 // vuln-code-snippet start loginAdminChallenge loginBenderChallenge loginJimChallenge
 export function login () {
@@ -30,28 +41,31 @@ export function login () {
   }
 
   return (req: Request, res: Response, next: NextFunction) => {
-    verifyPreLoginChallenges(req) // vuln-code-snippet hide-line
-    models.sequelize.query(`SELECT * FROM Users WHERE email = '${req.body.email || ''}' AND password = '${security.hash(req.body.password || '')}' AND deletedAt IS NULL`, { model: UserModel, plain: true }) // vuln-code-snippet vuln-line loginAdminChallenge loginBenderChallenge loginJimChallenge
-      .then((authenticatedUser) => { // vuln-code-snippet neutral-line loginAdminChallenge loginBenderChallenge loginJimChallenge
-        const user = utils.queryResultToJson(authenticatedUser)
-        if (user.data?.id && user.data.totpSecret !== '') {
-          res.status(401).json({
-            status: 'totp_token_required',
-            data: {
-              tmpToken: security.authorize({
-                userId: user.data.id,
-                type: 'password_valid_needs_second_factor_token'
-              })
-            }
-          })
-        } else if (user.data?.id) {
-          afterLogin(user.data, res, next)
-        } else {
-          res.status(401).send(res.__('Invalid email or password.'))
-        }
-      }).catch((error: Error) => {
-        next(error)
-      })
+    // call rate limit
+    loginLimiter(req, res, () => {
+      verifyPreLoginChallenges(req) // vuln-code-snippet hide-line
+      models.sequelize.query(`SELECT * FROM Users WHERE email = '${req.body.email || ''}' AND password = '${security.hash(req.body.password || '')}' AND deletedAt IS NULL`, { model: UserModel, plain: true }) // vuln-code-snippet vuln-line loginAdminChallenge loginBenderChallenge loginJimChallenge
+        .then((authenticatedUser) => { // vuln-code-snippet neutral-line loginAdminChallenge loginBenderChallenge loginJimChallenge
+          const user = utils.queryResultToJson(authenticatedUser)
+          if (user.data?.id && user.data.totpSecret !== '') {
+            res.status(401).json({
+              status: 'totp_token_required',
+              data: {
+                tmpToken: security.authorize({
+                  userId: user.data.id,
+                  type: 'password_valid_needs_second_factor_token'
+                })
+              }
+            })
+          } else if (user.data?.id) {
+            afterLogin(user.data, res, next)
+          } else {
+            res.status(401).send(res.__('Invalid email or password.'))
+          }
+        }).catch((error: Error) => {
+          next(error)
+        })
+    })
   }
   // vuln-code-snippet end loginAdminChallenge loginBenderChallenge loginJimChallenge
 
