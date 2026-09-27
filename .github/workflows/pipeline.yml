@@ -13,5 +13,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
-      - name: Pipeline Setup Test
-        run: echo "GitHub Actions Pipeline setup is successful!"
+      - name: 1. SAST Scan with Semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: "p/default"
