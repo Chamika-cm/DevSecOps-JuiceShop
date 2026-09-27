@@ -17,3 +17,11 @@ jobs:
         uses: returntocorp/semgrep-action@v1
         with:
           config: "p/default"
+
+      - name: Setup Node.js for Dependency Scan
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: 2. Dependency Scan
+        run: npm audit --audit-level=high
