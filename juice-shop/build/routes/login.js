@@ -44,6 +44,7 @@ const basket_1 = require("../models/basket");
 const security = __importStar(require("../lib/insecurity"));
 const user_1 = require("../models/user");
 const models = __importStar(require("../models/index"));
+const utils = __importStar(require("../lib/utils"));
 // vuln-code-snippet start loginAdminChallenge loginBenderChallenge loginJimChallenge
 function login() {
     function afterLogin(user, res, next) {
@@ -60,25 +61,22 @@ function login() {
     }
     return (req, res, next) => {
         verifyPreLoginChallenges(req); // vuln-code-snippet hide-line
-        const query = 'SELECT * FROM Users WHERE email = ? AND password = ?';
-        models.sequelize.query(query, {
-            replacements: [req.body.email, security.hash(req.body.password || '')],
-            type: models.sequelize.constructor.QueryTypes.SELECT
-        }).then((users) => {
-            const user = users[0];
-            if (user?.id && user.totpSecret !== '') {
+        models.sequelize.query(`SELECT * FROM Users WHERE email = '${req.body.email || ''}' AND password = '${security.hash(req.body.password || '')}' AND deletedAt IS NULL`, { model: user_1.UserModel, plain: true }) // vuln-code-snippet vuln-line loginAdminChallenge loginBenderChallenge loginJimChallenge
+            .then((authenticatedUser) => {
+            const user = utils.queryResultToJson(authenticatedUser);
+            if (user.data?.id && user.data.totpSecret !== '') {
                 res.status(401).json({
                     status: 'totp_token_required',
                     data: {
                         tmpToken: security.authorize({
-                            userId: user.id,
+                            userId: user.data.id,
                             type: 'password_valid_needs_second_factor_token'
                         })
                     }
                 });
             }
-            else if (user?.id) {
-                afterLogin(user, res, next);
+            else if (user.data?.id) {
+                afterLogin(user.data, res, next);
             }
             else {
                 res.status(401).send(res.__('Invalid email or password.'));

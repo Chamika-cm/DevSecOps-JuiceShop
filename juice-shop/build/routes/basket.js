@@ -49,6 +49,12 @@ function retrieveBasket() {
         try {
             const id = req.params.id;
             const basket = await basket_1.BasketModel.findOne({ where: { id }, include: [{ model: product_1.ProductModel, paranoid: false, as: 'Products' }] });
+            // --- IDOR / BOLA Fix: Authorization Check ---
+            const loggedInUser = security.authenticatedUsers.from(req);
+            if (loggedInUser && loggedInUser.bid !== parseInt(id, 10)) {
+                return res.status(403).json({ error: 'Unauthorized access to this basket!' });
+            }
+            // --------------------------------------------
             /* jshint eqeqeq:false */
             challengeUtils.solveIf(datacache_1.challenges.basketAccessChallenge, () => {
                 const user = security.authenticatedUsers.from(req);
