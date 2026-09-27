@@ -1,0 +1,22 @@
+{
+  "name": "juice-shop",
+  "version": "16.0.0",
+  "description": "OWASP Juice Shop: Probably the most modern and insecure Web Application",
+  "private": true,
+  "scripts": {
+    "start": "npx ts-node server.ts",
+    "build": "tsc",
+    "serve": "npx ts-node server.ts"
+  },
+  "dependencies": {
+    "config": "^3.3.11",
+    "express": "^4.19.2",
+    "express-rate-limit": "^8.7.0",
+    "sequelize": "^6.37.1",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^7.0.2"
+  }
+}

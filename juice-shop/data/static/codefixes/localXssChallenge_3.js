@@ -1,0 +1,26 @@
+"use strict";
+filterTable();
+{
+    let queryParam = this.route.snapshot.queryParams.q;
+    if (queryParam) {
+        queryParam = queryParam.trim();
+        this.dataSource.filter = queryParam.toLowerCase();
+        this.searchValue = this.sanitizer.bypassSecurityTrustScript(queryParam);
+        if (this.gridDataSourceSubscription) {
+            this.gridDataSourceSubscription.unsubscribe();
+        }
+        this.gridDataSourceSubscription = this.gridDataSource.subscribe((result) => {
+            if (result.length === 0) {
+                this.emptyState = true;
+            }
+            else {
+                this.emptyState = false;
+            }
+        });
+    }
+    else {
+        this.dataSource.filter = '';
+        this.searchValue = undefined;
+        this.emptyState = false;
+    }
+}
