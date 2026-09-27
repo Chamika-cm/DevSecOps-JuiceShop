@@ -36,3 +36,11 @@ jobs:
         run: docker build -t my-app:latest .
         env:
           APP_SECRET_KEY: ${{ secrets.APP_SECRET_KEY }}
+      
+      - name: 4. Container Scan with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'my-app:latest'
+          format: 'table'
+          exit-code: '1'
+          severity: 'CRITICAL,HIGH'
