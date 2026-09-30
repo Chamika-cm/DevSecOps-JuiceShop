@@ -67,3 +67,11 @@ GitHub Actions
   The `/rest/user/login` endpoint lacked request throttling controls, leaving it wide open to automated brute-force attacks. Attackers could continuously spam login attempts to guess user credentials without any restrictions or delays.
 - **The Remediation / Fix:** 
   We secured the login route by integrating the `express-rate-limit` middleware directly into `routes/login.ts`. We configured a strict rate limit restricting login attempts to a maximum of 5 requests per 15 minutes per IP address. When this threshold is exceeded, the server automatically blocks further requests and responds with a `429 Too Many Requests` status code.
+
+
+  ### 5. Security Misconfiguration (Root Container) Remediation
+- **Vulnerable File:** `Dockerfile` / `docker-compose.yml`
+- **The Vulnerability:** 
+  The container was originally configured to run with default root privileges (User ID 0). If an attacker managed to compromise the web application, they could potentially execute arbitrary commands as the root user inside the container, increasing the risk of container escape and host system takeover.
+- **The Remediation / Fix:** 
+  We secured the deployment configuration by updating the `Dockerfile` and `docker-compose.yml` files to explicitly drop root privileges. The application process is now configured to run under a non-privileged system user ID (`65532`). This enforces the principle of least privilege, ensuring that even if the container is compromised, the attacker's access remains severely restricted.
