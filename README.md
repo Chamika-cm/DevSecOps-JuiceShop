@@ -22,14 +22,14 @@
 
 Project Execution & Setup Instructions
 Prerequisites
-Required software:
+Required software
 •	Docker
 •	Docker Compose
 •	Node.js v18+
 •	Python 3.x
 ________________________________________
 Running the Application
-Build and start containers:
+Build and start containers
 docker-compose up --build
 Access application:
 http://localhost:3000
