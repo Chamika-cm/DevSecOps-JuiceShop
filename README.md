@@ -83,9 +83,8 @@ A custom Python script (rate_test.py) was created to test the Rate Limiting Lack
 - To verify whether the server effectively blocks or throttles spammed requests[cite: 4].
 
 ### How to Run the Script:
-```bash
-python rate_test.py
 
+  python rate_test.py
 
 ### MEMBER 3 PART - FIX VULNERABILITIES 
 
