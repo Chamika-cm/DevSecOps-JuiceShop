@@ -24,20 +24,8 @@ GitHub
 ## CI/CD Automation
 GitHub Actions
 
-### Member 2 Part
 
-## Rate Limiting Testing Script (rate_test.py)
 
-A custom Python script (rate_test.py) was created to test the Rate Limiting Lack / DoS (TH-05 / RR-04) vulnerability[cite: 4].
-
-### Script Purpose:
-- To send a high volume of concurrent requests to the OWASP Juice Shop application and test if Rate Limiting mechanisms are present[cite: 4].
-- To verify whether the server effectively blocks or throttles spammed requests[cite: 4].
-
-### How to Run the Script:
-```bash
-python rate_test.py
- 
 
 ### MEMBER 3 PART - FIX VULNERABILITIES 
 
